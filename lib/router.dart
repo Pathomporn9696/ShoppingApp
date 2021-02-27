@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shoppingproject/widget/add_list_product.dart';
 import 'package:shoppingproject/widget/authen.dart';
 import 'package:shoppingproject/widget/bag_men_list.dart';
+import 'package:shoppingproject/widget/edit_profile.dart';
 import 'package:shoppingproject/widget/hat_men_list.dart';
 import 'package:shoppingproject/widget/myhome.dart';
 import 'package:shoppingproject/widget/pants_men_list.dart';
@@ -22,5 +23,6 @@ final Map<String, WidgetBuilder> routes ={
   '/shoesmen':(BuildContext context)=>ShoesMenList(),
   '/bagmen':(BuildContext context)=> BagMenProduct(),
   '/addProduct':(BuildContext context)=>AddListProduct(),
+  '/editProfile':(BuildContext context)=>EditProfile(),
   
 };

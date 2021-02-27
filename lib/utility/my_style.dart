@@ -5,6 +5,8 @@ class MyStyle {
   Color darkColor = Color(0xffc30000);
   Color primaryColor = Color(0xffff2626);
   Color lightColor = Color(0xffff6751);
+
+  Widget showProgress() => Center(child: CircularProgressIndicator());
   
   Widget showLogo()=>Image.asset('images/logo.png');
 

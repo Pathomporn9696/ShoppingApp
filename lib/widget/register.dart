@@ -173,7 +173,7 @@ class _RegisterState extends State<Register> {
               buildName(),
               buildEmail(),
               buildPassword(),
-              buildPhone(),
+              //buildPhone(),
             ],
           ),
         ),
@@ -189,10 +189,9 @@ class _RegisterState extends State<Register> {
             'name = $name, email = $email, password = $password, phone = $phone');
         if ((name?.isEmpty ?? true) ||
             (email?.isEmpty ?? true) ||
-            (password?.isEmpty ?? true) ||
-            (phone?.isEmpty ?? true)) {
+            (password?.isEmpty ?? true)) {
           print('Have Space');
-          normalDialog(context, 'กรุณากรอก ข้อมูล ในช่องว่างให้ครบ');
+          normalDialog(context,'มีช่องว่าง?', 'กรุณากรอก ข้อมูล ในช่องว่างให้ครบ');
         } else {
           print('No Space');
           registerFirebase();
@@ -213,7 +212,7 @@ class _RegisterState extends State<Register> {
             Navigator.pushNamedAndRemoveUntil(
                 context, '/myHome', (route) => false));
       }).catchError((value) {
-        normalDialog(context, value.message);
+        normalDialog(context, value.code,value.message);
       });
     });
   }

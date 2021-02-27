@@ -1,4 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shoppingproject/models/product_men.dart';
 import 'package:shoppingproject/utility/my_style.dart';
 
 class AllProduct extends StatefulWidget {
@@ -7,6 +11,139 @@ class AllProduct extends StatefulWidget {
 }
 
 class _AllProductState extends State<AllProduct> {
+  List<ProductMenModel> shirtProductMenModels = List();
+  List<Widget> shirtWidgets = List();
+
+  List<ProductMenModel> hatProductMenModels = List();
+  List<Widget> hatWidgets = List();
+
+  List<ProductMenModel> bagProductMenModels = List();
+  List<Widget> bagWidgets = List();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    readData();
+  }
+
+  Future<Null> readData() async {
+    await Firebase.initializeApp().then((value) async {
+      await FirebaseFirestore.instance
+          .collection('product')
+          .snapshots()
+          .listen((event) {
+        int indexShirt = 0;
+        for (var item in event.docs) {
+          ProductMenModel shirtmodel = ProductMenModel.fromMap(item.data());
+          Widget shirtwidget =
+              buildTemplate(context, shirtmodel, 'Shirt', indexShirt);
+          setState(() {
+            shirtProductMenModels.add(shirtmodel);
+            shirtWidgets.add(shirtwidget);
+          });
+          indexShirt++;
+        }
+      });
+    });
+
+    await FirebaseFirestore.instance
+        .collection('productMenHat')
+        .snapshots()
+        .listen((event) {
+      int indexHat = 0;
+      for (var item in event.docs) {
+        ProductMenModel hatmodel = ProductMenModel.fromMap(item.data());
+        Widget hatWidget = buildTemplate(context, hatmodel, 'Hat', indexHat);
+        setState(() {
+          hatProductMenModels.add(hatmodel);
+          hatWidgets.add(hatWidget);
+        });
+        indexHat++;
+      }
+    });
+
+    await FirebaseFirestore.instance
+        .collection('productbag')
+        .snapshots()
+        .listen((event) {
+      int indexBag = 0;
+      for (var item in event.docs) {
+        ProductMenModel bagmodel = ProductMenModel.fromMap(item.data());
+        Widget bagwidget = buildTemplate(context, bagmodel, 'Shirt', indexBag);
+        setState(() {
+          bagProductMenModels.add(bagmodel);
+          bagWidgets.add(bagwidget);
+        });
+        indexBag++;
+      }
+    });
+  }
+
+  Future<Null> addProductToCart()async{}
+
+  Container buildTemplate(BuildContext context, ProductMenModel productMenModel,
+      String type, int index) {
+    return Container(
+      margin: EdgeInsets.all(15),
+      width: MediaQuery.of(context).size.width * 0.45,
+      child: GestureDetector(onTap: () => print('you click index = $index, type = $type'),
+              child: Card(
+          child: Column(
+            children: [
+              Container(
+                width: MediaQuery.of(context).size.width * 0.4 - 20,
+                height: MediaQuery.of(context).size.width * 0.4 - 10,
+                child: CachedNetworkImage(
+                  imageUrl: productMenModel.pathImage,
+                  placeholder: (context, url) => MyStyle().showProgress(),
+                  errorWidget: (context, url, error) => Image(
+                    image: AssetImage('images/pic.png'),
+                  ),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(color: Colors.white, boxShadow: [
+                  BoxShadow(
+                    offset: Offset(0, 10),
+                    blurRadius: 50,
+                    color: MyStyle().primaryColor.withOpacity(0.23),
+                  )
+                ]),
+                child: Row(
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${productMenModel.name}\n'.toUpperCase(),
+                            style: Theme.of(context).textTheme.button,
+                          ),
+                          TextSpan(
+                              text: type.toUpperCase(),
+                              style: TextStyle(color: MyStyle().lightColor))
+                        ],
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      '${productMenModel.detail}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .button
+                          .copyWith(color: MyStyle().darkColor),
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -15,33 +152,87 @@ class _AllProductState extends State<AllProduct> {
         child: Column(
           children: [
             buildHeader(size, context),
-            buildTitleProductAllShirt(context),
-            buildSingleChildScrollViewShirt(size, context),
-            buildTitleProductAllHat(context),
-            buildSingleChildScrollViewHat(size, context),
-            buildTitleProductAllBag(context),
-            buildSingleChildScrollViewBag(size, context),
+            buildTitleProduct('Shirt', '/shirtmen'),
+            buildSingleChildScrollViewShirt(),
+            buildTitleProduct('Hat', '/hatmen'),
+            buildSingleChildScrollViewHat(),
+            buildTitleProduct('Bag', '/bagmen'),
+            buildSingleChildScrollViewBag(),
           ],
         ),
       ),
     );
   }
-}
 
-SingleChildScrollView buildSingleChildScrollViewShirt(
-    Size size, BuildContext context) {
-  return SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: Row(
-      children: [
-        buildShirt(size, context),
-        buildShirt2(size, context),
-        buildShirt3(size, context),
-        buildShirt4(size, context),
-      ],
-    ),
-  );
-}
+  Padding buildTitleProduct(String title, String myRoute) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 1, left: 15, right: 15),
+      child: Row(
+        children: [
+          Container(
+            height: 24,
+            child: Stack(
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 7,
+                    color: MyStyle().lightColor.withOpacity(0.2),
+                  ),
+                )
+              ],
+            ),
+          ),
+          Spacer(),
+          FlatButton(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            color: MyStyle().lightColor,
+            onPressed: () => Navigator.pushNamed(context, myRoute),
+            child: Text(
+              'ProductAll',
+              style: TextStyle(color: Colors.white),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  SingleChildScrollView buildSingleChildScrollViewShirt() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: shirtWidgets,
+      ),
+    );
+  }
+
+  SingleChildScrollView buildSingleChildScrollViewHat() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: hatWidgets,
+      ),
+    );
+  }
+
+  SingleChildScrollView buildSingleChildScrollViewBag() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: bagWidgets,
+      ),
+    );
+  }
+} //end
 
 SingleChildScrollView buildSingleChildScrollViewBag(
     Size size, BuildContext context) {
@@ -53,21 +244,6 @@ SingleChildScrollView buildSingleChildScrollViewBag(
         buildBag2(size, context),
         buildBag3(size, context),
         buildBag4(size, context),
-      ],
-    ),
-  );
-}
-
-SingleChildScrollView buildSingleChildScrollViewHat(
-    Size size, BuildContext context) {
-  return SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: Row(
-      children: [
-        buildHat1(size, context),
-        buildHat2(size, context),
-        buildHat3(size, context),
-        buildHat4(size, context),
       ],
     ),
   );
@@ -710,29 +886,6 @@ Padding buildTitleProductAllShirt(BuildContext context) {
           ),
           color: MyStyle().lightColor,
           onPressed: () => Navigator.pushNamed(context, '/shirtmen'),
-          child: Text(
-            'ProductAll',
-            style: TextStyle(color: Colors.white),
-          ),
-        )
-      ],
-    ),
-  );
-}
-
-Padding buildTitleProductAllHat(BuildContext context) {
-  return Padding(
-    padding: const EdgeInsets.only(top: 1, left: 15, right: 15),
-    child: Row(
-      children: [
-        buildTitleProductHat(),
-        Spacer(),
-        FlatButton(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          color: MyStyle().lightColor,
-          onPressed: () => Navigator.pushNamed(context, '/hatmen'),
           child: Text(
             'ProductAll',
             style: TextStyle(color: Colors.white),

@@ -62,7 +62,7 @@ class _AuthenState extends State<Authen> {
         onPressed: () {
           if ((email?.isEmpty ?? true) || (password?.isEmpty ?? true)) {
             normalDialog(
-                context, 'มีข้อมูลที่ไม่ได้กรอก ? กรุณากรอกข้อมูลในช่องว่าง');
+                context,'มีช่องว่าง?', 'มีข้อมูลที่ไม่ได้กรอก ? กรุณากรอกข้อมูลในช่องว่าง');
           } else {
             checkAuthen();
           }
@@ -168,7 +168,7 @@ class _AuthenState extends State<Authen> {
       await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password)
           .then((value) => Navigator.pushNamedAndRemoveUntil(context, '/myHome', (route) => false))
-          .catchError((value) => normalDialog(context, value.message));
+          .catchError((value) => normalDialog(context, value.code, value.message));
     });
   }
 }
