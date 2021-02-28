@@ -5,22 +5,25 @@ class ProductMenModel {
   final String name;
   final String detail;
   final String pathImage;
+  final String uid;
   ProductMenModel({
     this.name,
     this.detail,
     this.pathImage,
+    this.uid,
   });
-  
 
   ProductMenModel copyWith({
     String name,
     String detail,
     String pathImage,
+    String uid,
   }) {
     return ProductMenModel(
       name: name ?? this.name,
       detail: detail ?? this.detail,
       pathImage: pathImage ?? this.pathImage,
+      uid: uid ?? this.uid,
     );
   }
 
@@ -29,6 +32,7 @@ class ProductMenModel {
       'name': name,
       'detail': detail,
       'pathImage': pathImage,
+      'uid': uid,
     };
   }
 
@@ -39,6 +43,7 @@ class ProductMenModel {
       name: map['name'],
       detail: map['detail'],
       pathImage: map['pathImage'],
+      uid: map['uid'],
     );
   }
 
@@ -47,7 +52,9 @@ class ProductMenModel {
   factory ProductMenModel.fromJson(String source) => ProductMenModel.fromMap(json.decode(source));
 
   @override
-  String toString() => 'ProductMenModel(name: $name, detail: $detail, pathImage: $pathImage)';
+  String toString() {
+    return 'ProductMenModel(name: $name, detail: $detail, pathImage: $pathImage, uid: $uid)';
+  }
 
   @override
   bool operator ==(Object o) {
@@ -56,9 +63,15 @@ class ProductMenModel {
     return o is ProductMenModel &&
       o.name == name &&
       o.detail == detail &&
-      o.pathImage == pathImage;
+      o.pathImage == pathImage &&
+      o.uid == uid;
   }
 
   @override
-  int get hashCode => name.hashCode ^ detail.hashCode ^ pathImage.hashCode;
+  int get hashCode {
+    return name.hashCode ^
+      detail.hashCode ^
+      pathImage.hashCode ^
+      uid.hashCode;
+  }
 }

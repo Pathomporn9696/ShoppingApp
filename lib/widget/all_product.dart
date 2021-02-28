@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shoppingproject/models/product_men.dart';
+import 'package:shoppingproject/models/profile_model.dart';
 import 'package:shoppingproject/utility/my_style.dart';
 
 class AllProduct extends StatefulWidget {
@@ -70,7 +71,7 @@ class _AllProductState extends State<AllProduct> {
       int indexBag = 0;
       for (var item in event.docs) {
         ProductMenModel bagmodel = ProductMenModel.fromMap(item.data());
-        Widget bagwidget = buildTemplate(context, bagmodel, 'Shirt', indexBag);
+        Widget bagwidget = buildTemplate(context, bagmodel, 'Bag', indexBag);
         setState(() {
           bagProductMenModels.add(bagmodel);
           bagWidgets.add(bagwidget);
@@ -80,15 +81,131 @@ class _AllProductState extends State<AllProduct> {
     });
   }
 
-  Future<Null> addProductToCart()async{}
+  Future<Null> addProductToSQLite(
+    ProductMenModel model,
+    int amountInt,
+  ) async {
+    String uidshop, nameshop, nameproduct, price, amount, sum;
+    uidshop = model.uid;
+
+    await Firebase.initializeApp().then((value) async {
+      await FirebaseFirestore.instance
+          .collection('profile')
+          .doc(uidshop)
+          .snapshots()
+          .listen((event) {
+        ProfileModel profileModel = ProfileModel.fromMap(event.data());
+        if (profileModel.name != null) {
+          nameshop = profileModel.name;
+        } else {
+          nameshop = 'none';
+        }
+
+        nameproduct = model.name;
+        price = model.detail;
+        amount = amountInt.toString();
+
+        int sumInt = amountInt * int.parse(price.trim());
+        sum = sumInt.toString();
+
+        print(
+            '### uidshop = $uidshop, nameshop = $nameshop, nameproduct= $nameproduct,\n price = $price, amount = $amount, sum = $sum');
+      });
+    });
+  }
+
+  Future<Null> addProductToCart(ProductMenModel model) async {
+    int amount = 1;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => SimpleDialog(
+          title: ListTile(
+            leading: CachedNetworkImage(
+              imageUrl: model.pathImage,
+              placeholder: (context, url) => MyStyle().showProgress(),
+              errorWidget: (context, url, error) => Image(
+                image: AssetImage('images/pic.png'),
+              ),
+            ),
+            title: MyStyle().titleH1(model.name),
+            subtitle: MyStyle().titleH3('Price = ${model.detail} BHT'),
+          ),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.add_circle),
+                  onPressed: () {
+                    setState(() {
+                      amount++;
+                    });
+                  },
+                ),
+                MyStyle().titleH2('$amount'),
+                IconButton(
+                  icon: Icon(Icons.remove_circle),
+                  onPressed: () {
+                    if (amount > 1) {
+                      setState(() {
+                        amount--;
+                      });
+                    } else {
+                      setState(() {
+                        amount = 1;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    addProductToSQLite(model, amount);
+                  },
+                  child: Text('Add to Cart'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Cancel'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Container buildTemplate(BuildContext context, ProductMenModel productMenModel,
       String type, int index) {
     return Container(
       margin: EdgeInsets.all(15),
       width: MediaQuery.of(context).size.width * 0.45,
-      child: GestureDetector(onTap: () => print('you click index = $index, type = $type'),
-              child: Card(
+      child: GestureDetector(
+        onTap: () {
+          print('you click index = $index, type = $type');
+          switch (type) {
+            case 'Shirt':
+              addProductToCart(shirtProductMenModels[index]);
+              break;
+            case 'Hat':
+              addProductToCart(hatProductMenModels[index]);
+              break;
+            case 'Bag':
+              addProductToCart(bagProductMenModels[index]);
+              break;
+            default:
+          }
+        },
+        child: Card(
           child: Column(
             children: [
               Container(
