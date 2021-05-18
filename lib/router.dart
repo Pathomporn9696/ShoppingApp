@@ -9,7 +9,9 @@ import 'package:shoppingproject/widget/pants_men_list.dart';
 import 'package:shoppingproject/widget/register.dart';
 import 'package:shoppingproject/widget/shirt_men_list.dart';
 import 'package:shoppingproject/widget/shoes_men_list.dart';
+import 'package:shoppingproject/widget/show_cart.dart';
 import 'package:shoppingproject/widget/show_men_list.dart';
+import 'package:shoppingproject/widget/show_order_customer.dart';
 
 
 final Map<String, WidgetBuilder> routes ={
@@ -24,5 +26,7 @@ final Map<String, WidgetBuilder> routes ={
   '/bagmen':(BuildContext context)=> BagMenProduct(),
   '/addProduct':(BuildContext context)=>AddListProduct(),
   '/editProfile':(BuildContext context)=>EditProfile(),
+  '/showCart':(BuildContext context)=>ShowCart(),
+  '/showOrderCustomer':(BuildContext context)=>ShowOderCustomer(),
   
 };

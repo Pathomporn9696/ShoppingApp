@@ -34,16 +34,30 @@ class _MyHomeState extends State<MyHome> {
     });
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: MyStyle().primaryColor
+        backgroundColor: MyStyle().primaryColor,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () => Navigator.pushNamed(context, '/showCart'),
+          ),
+          IconButton(
+            icon: Icon(Icons.home),
+            onPressed: () => Navigator.pushNamed(context, '/showOrderCustomer'),
+          ),
+        ],
       ),
       drawer: buildDrawer(),
       body: currenWidget,
     );
   }
+
+
 
   Drawer buildDrawer() {
     return Drawer(
@@ -154,7 +168,6 @@ class _MyHomeState extends State<MyHome> {
     );
   }
 
-
   UserAccountsDrawerHeader buildUserAccountsDrawerHeader() {
     return UserAccountsDrawerHeader(
       decoration: BoxDecoration(
@@ -167,6 +180,7 @@ class _MyHomeState extends State<MyHome> {
     );
   }
 
+  
   Column buildSignOut() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -191,4 +205,5 @@ class _MyHomeState extends State<MyHome> {
       ],
     );
   }
+
 }

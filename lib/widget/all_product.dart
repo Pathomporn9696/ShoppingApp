@@ -2,9 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shoppingproject/models/order_sqlite_model.dart';
 import 'package:shoppingproject/models/product_men.dart';
 import 'package:shoppingproject/models/profile_model.dart';
 import 'package:shoppingproject/utility/my_style.dart';
+import 'package:shoppingproject/utility/sqlitehelper.dart';
 
 class AllProduct extends StatefulWidget {
   @override
@@ -93,7 +95,7 @@ class _AllProductState extends State<AllProduct> {
           .collection('profile')
           .doc(uidshop)
           .snapshots()
-          .listen((event) {
+          .listen((event) async {
         ProfileModel profileModel = ProfileModel.fromMap(event.data());
         if (profileModel.name != null) {
           nameshop = profileModel.name;
@@ -110,6 +112,16 @@ class _AllProductState extends State<AllProduct> {
 
         print(
             '### uidshop = $uidshop, nameshop = $nameshop, nameproduct= $nameproduct,\n price = $price, amount = $amount, sum = $sum');
+        OrderSQLiteModel orderSQLiteModel = OrderSQLiteModel(
+            uidshop: uidshop,
+            nameshop: nameshop,
+            nameproduct: nameproduct,
+            price: price,
+            amount: amount,
+            sum: sum);
+
+        await SQLiteHelper().insertData(orderSQLiteModel).then((value) => print('Success Insert SQLite'));
+
       });
     });
   }

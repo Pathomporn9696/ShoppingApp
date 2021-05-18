@@ -1,8 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:flutter_signin_button/button_list.dart';
+import 'package:flutter_signin_button/button_view.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shoppingproject/utility/dialog.dart';
 import 'package:shoppingproject/utility/my_style.dart';
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
 class Authen extends StatefulWidget {
   Authen({Key key}) : super(key: key);
@@ -14,7 +19,11 @@ class Authen extends StatefulWidget {
 class _AuthenState extends State<Authen> {
   double screen;
   bool statusRedEye = true;
+  bool _isLogin = false;
   String email, password;
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  FacebookLogin _facebookLogin = FacebookLogin();
+  User _user;
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +46,173 @@ class _AuthenState extends State<Authen> {
                 MyStyle().titleH1('ShoppingOnline'),
                 buildEmail(),
                 buildPassword(),
-                buildLogin()
+                buildLogin(),
+                buildSignInGoogle(),
+                buildSignInFacebook(),
+                buildSignInTwitter(),
+                buildSignInLine(),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  void lineSDKInit() async {
+    await LineSDK.instance.setup("1655941024").then((_) {
+      print("LineSDK is Prepared");
+    });
+  }
+
+  @override
+  void initState() {
+    lineSDKInit();
+    super.initState();
+  }
+
+  void startLineLogin() async {
+    try {
+      final result = await LineSDK.instance.login(scopes: ["profile"]);
+      print(result.toString());
+    } on FormatException catch (e) {
+      print(e);
+    }
+    await Navigator.pushNamedAndRemoveUntil(
+        context, '/myHome', (route) => false);
+  }
+
+  Container buildSignInLine() => Container(
+      margin: EdgeInsets.only(top: 8),
+      width: screen * 0.75,
+      child: RaisedButton(
+        color: Color.fromRGBO(0, 185, 0, 1),
+        textColor: Colors.white,
+        padding: const EdgeInsets.all(1),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Image.network(
+                  'https://firebasestorage.googleapis.com/v0/b/messagingapitutorial.appspot.com/o/line_logo.png?alt=media&token=80b41ee6-9d77-45da-9744-2033e15f52b2',
+                  width: 40,
+                  height: 40,
+                ),
+                Container(
+                  color: Colors.black12,
+                  width: 2,
+                  height: 40,
+                ),
+                Expanded(
+                  child: Center(
+                      child: Text("เข้าสู่ระบบด้วย LINE",
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.bold))),
+                )
+              ]
+            ),
+          ],
+        ),
+        onPressed:(){
+          startLineLogin();
+        },
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10)
+        ),
+      ));
+
+  Container buildSignInTwitter() => Container(
+        margin: EdgeInsets.only(top: 8),
+        width: screen * 0.75,
+        child: SignInButton(
+          Buttons.Twitter,
+          onPressed: () {},
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+      );    
+
+  Container buildSignInFacebook() => Container(
+        margin: EdgeInsets.only(top: 8),
+        width: screen * 0.75,
+        child: SignInButton(
+          Buttons.FacebookNew,
+          onPressed: () async {
+            await _handleLogin();
+          },
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+      );
+
+  Future _handleLogin() async {
+    FacebookLoginResult _result = await _facebookLogin.logIn(['email']);
+    switch (_result.status) {
+      case FacebookLoginStatus.cancelledByUser:
+        print("cancelledByUser");
+        break;
+      case FacebookLoginStatus.error:
+        print("error");
+        break;
+      case FacebookLoginStatus.loggedIn:
+        await _loginWithFacebook(_result);
+        break;
+      default:
+    }
+  }
+
+  Future _loginWithFacebook(FacebookLoginResult _result) async {
+    FacebookAccessToken _accessToken = _result.accessToken;
+    AuthCredential _credential =
+        FacebookAuthProvider.credential(_accessToken.token);
+    var a = await _auth.signInWithCredential(_credential);
+    setState(() {
+      _isLogin = true;
+      _user = a.user;
+    });
+    await _auth.signInWithCredential(_credential).then((value) =>
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/myHome', (route) => false));
+  }
+
+  Container buildSignInGoogle() => Container(
+        margin: EdgeInsets.only(top: 8),
+        width: screen * 0.75,
+        child: SignInButton(
+          Buttons.Google,
+          onPressed: () => processSignInWithGoogle(),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+      );
+
+  Future<Null> processSignInWithGoogle() async {
+    GoogleSignIn _googleSignIn = GoogleSignIn(
+      scopes: [
+        'email',
+        'https://www.googleapis.com/auth/contacts.readonly',
+      ],
+    );
+
+    await Firebase.initializeApp().then((value) async {
+      await _googleSignIn.signIn().then((value) async {
+        String name = value.displayName;
+        String email = value.email;
+        await value.authentication.then((value2) async {
+          AuthCredential authCredential = GoogleAuthProvider.credential(
+            idToken: value2.idToken,
+            accessToken: value2.accessToken,
+          );
+          await FirebaseAuth.instance.signInWithCredential(authCredential).then(
+              (value3) => Navigator.pushNamedAndRemoveUntil(
+                  context, '/myHome', (route) => false));
+        });
+      });
+    });
   }
 
   TextButton buildRegister() => TextButton(
@@ -61,8 +230,8 @@ class _AuthenState extends State<Authen> {
       child: ElevatedButton(
         onPressed: () {
           if ((email?.isEmpty ?? true) || (password?.isEmpty ?? true)) {
-            normalDialog(
-                context,'มีช่องว่าง?', 'มีข้อมูลที่ไม่ได้กรอก ? กรุณากรอกข้อมูลในช่องว่าง');
+            normalDialog(context, 'มีช่องว่าง?',
+                'มีข้อมูลที่ไม่ได้กรอก ? กรุณากรอกข้อมูลในช่องว่าง');
           } else {
             checkAuthen();
           }
@@ -167,8 +336,10 @@ class _AuthenState extends State<Authen> {
     await Firebase.initializeApp().then((value) async {
       await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password)
-          .then((value) => Navigator.pushNamedAndRemoveUntil(context, '/myHome', (route) => false))
-          .catchError((value) => normalDialog(context, value.code, value.message));
+          .then((value) => Navigator.pushNamedAndRemoveUntil(
+              context, '/myHome', (route) => false))
+          .catchError(
+              (value) => normalDialog(context, value.code, value.message));
     });
   }
 }
